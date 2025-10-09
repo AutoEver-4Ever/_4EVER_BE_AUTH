@@ -26,7 +26,7 @@ RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 # JAR 파일 복사
 COPY --from=build /app/build/libs/*.jar app.jar
 
-EXPOSE 8082
+EXPOSE 8085
 
 # 개발 환경용 JVM 옵션
 ENV JAVA_OPTS="-Xms256m -Xmx512m -Dspring.profiles.active=dev"
