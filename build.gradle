@@ -62,6 +62,19 @@ dependencies {
 
     // Jackson for Redis serialization
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+    // OAuth 구현(Spring Security 6)
+    // OAuth2 Authorization Server (명시적 버전 필요)
+    implementation 'org.springframework.security:spring-security-oauth2-authorization-server:1.4.0'
+
+    // Resource Server (Boot가 버전 관리)
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+
+    // JOSE/JWT(JWK/JWS) 처리
+    implementation 'org.springframework.security:spring-security-oauth2-jose'
+
+    // (테스트) Spring Security 테스트 유틸
+    testImplementation 'org.springframework.security:spring-security-test'
 }
 
 def querydslDir = "$buildDir/generated/querydsl"
