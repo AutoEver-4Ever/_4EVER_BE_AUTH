@@ -94,3 +94,4 @@ yarn-debug.log*
 yarn-error.log*
 
 # docs: 개인 기록 저장
+/docs
