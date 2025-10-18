@@ -1,4 +1,4 @@
-package org.ever._4ever_be_auth.user;
+package org.ever._4ever_be_auth.user.enums;
 
 import lombok.Getter;
 
