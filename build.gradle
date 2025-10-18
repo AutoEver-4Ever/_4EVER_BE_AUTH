@@ -65,7 +65,7 @@ dependencies {
 
     // OAuth 관련 의존성
     // OAuth2 Authorization Server
-    implementation 'org.springframework.security:spring-security-oauth2-authorization-server:1.4.0'
+    implementation "org.springframework.boot:spring-boot-starter-oauth2-authorization-server"
 
     // Resource Server (Boot가 버전 관리)
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
