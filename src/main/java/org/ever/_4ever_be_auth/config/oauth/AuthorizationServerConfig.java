@@ -1,16 +1,17 @@
 package org.ever._4ever_be_auth.config.oauth;
 
-import org.ever._4ever_be_auth.auth.client.JpaRegisteredClientRepositoryAdapter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
+import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
@@ -78,28 +79,27 @@ public class AuthorizationServerConfig {
                 .build();
     }
 
-    // JPA RegisteredClient 저장소 초기화 (PKCE 전용 공개 클라이언트 기본 등록)
     @Bean
-    public RegisteredClientRepository registeredClientRepository(JpaRegisteredClientRepositoryAdapter adapter,
+    public RegisteredClientRepository registeredClientRepository(JdbcOperations jdbcOperations,
                                                                  TokenSettings tokenSettings) {
+        JdbcRegisteredClientRepository repository = new JdbcRegisteredClientRepository(jdbcOperations);
+
         RegisteredClient erpWebClient = RegisteredClient.withId("erp-web-client")
                 .clientId("erp-web-client")
-                .clientAuthenticationMethod(ClientAuthenticationMethod.NONE) // PKCE 전용 public client
+                .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 .redirectUri("http://localhost:3000/oauth2/callback")
                 .scope(OidcScopes.OPENID)
                 .scope("erp.scm.read")
                 .tokenSettings(tokenSettings)
-                .clientSettings(ClientSettings.builder()
-                        .requireProofKey(true)
-                        .build())
+                .clientSettings(ClientSettings.builder().requireProofKey(true).build())
                 .build();
 
-        if (adapter.findByClientId(erpWebClient.getClientId()) == null) {
-            adapter.save(erpWebClient);
+        if (repository.findByClientId(erpWebClient.getClientId()) == null) {
+            repository.save(erpWebClient);
         }
 
-        return adapter;
+        return repository;
     }
 }
