@@ -1,6 +1,7 @@
 package org.ever._4ever_be_auth.user.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -63,5 +64,20 @@ public class User extends TimeStamp {
         this.userType = userType;
         this.userStatus = userStatus;
         this.passwordLastChangedAt = passwordLastChangedAt;
+    }
+
+    public static User create(
+            String loginEmail,
+            String encodedPassword,
+            @NotNull UserRole userRole
+    ) {
+        return User.builder()
+                .loginEmail(loginEmail)
+                .passwordHash(encodedPassword)
+                .userRole(userRole)
+                .userType(userRole.getType())
+                .userStatus(UserStatus.ACTIVE)
+                .passwordLastChangedAt(null) // 최초 로그인 시 변경을 요구하기 위해서 null으로 처리함.
+                .build();
     }
 }
