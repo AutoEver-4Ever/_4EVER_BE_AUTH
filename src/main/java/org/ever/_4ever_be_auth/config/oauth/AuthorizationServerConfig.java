@@ -1,5 +1,8 @@
 package org.ever._4ever_be_auth.config.oauth;
 
+import org.ever._4ever_be_auth.auth.client.JpaRegisteredClientRepositoryAdapter;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -8,7 +11,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
-import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
@@ -20,6 +22,7 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 
 // 하나 이상의 Bean 객체가 있는 경우의 각 Bean들을 인식하기 위해 등록하는 어노테이션
 @Configuration
+@EnableConfigurationProperties(TokenProperties.class)
 public class AuthorizationServerConfig {
     /**
      * {@code authorizationServerSecurityFilterChain}:
@@ -57,19 +60,28 @@ public class AuthorizationServerConfig {
     // Spring Authorization Server가 내부에서 사용하는 설정 값들을 묶어둔 객체로
     // 서버가 자신을 식별하고 각 엔드포인트 경로를 어떻게 노출할지 결정하는 정도를 가지고 있음.
     @Bean
-    public AuthorizationServerSettings authorizationServerSettings() {
+    public AuthorizationServerSettings authorizationServerSettings(
+            @Value("${spring.security.oauth2.authorizationserver.issuer}") String issuer) {
         return AuthorizationServerSettings.builder()
-                //TODO: issuer는 게이트웨이를 통해 공개되는 url을 issuer로 사용해야함
-                .issuer("http://localhost:8080")
+                .issuer(issuer)
                 .authorizationEndpoint("/oauth2/authorize")
                 .tokenEndpoint("/oauth2/token")
                 .build();
     }
 
-    // 인메모리 Registered Client 저장소 빈 정의 - 추후 DB 저장소로 교체 예정
-    // PKCE 전용 공개 클라이언트
     @Bean
-    public RegisteredClientRepository registeredClientRepository() {
+    public TokenSettings tokenSettings(TokenProperties tokenProperties) {
+        return TokenSettings.builder()
+                .accessTokenTimeToLive(tokenProperties.getAccessTokenTtl())
+                .refreshTokenTimeToLive(tokenProperties.getRefreshTokenTtl())
+                .reuseRefreshTokens(false)
+                .build();
+    }
+
+    // JPA RegisteredClient 저장소 초기화 (PKCE 전용 공개 클라이언트 기본 등록)
+    @Bean
+    public RegisteredClientRepository registeredClientRepository(JpaRegisteredClientRepositoryAdapter adapter,
+                                                                 TokenSettings tokenSettings) {
         RegisteredClient erpWebClient = RegisteredClient.withId("erp-web-client")
                 .clientId("erp-web-client")
                 .clientAuthenticationMethod(ClientAuthenticationMethod.NONE) // PKCE 전용 public client
@@ -78,12 +90,16 @@ public class AuthorizationServerConfig {
                 .redirectUri("http://localhost:3000/oauth2/callback")
                 .scope(OidcScopes.OPENID)
                 .scope("erp.scm.read")
-                .tokenSettings(TokenSettings.builder().build())
+                .tokenSettings(tokenSettings)
                 .clientSettings(ClientSettings.builder()
                         .requireProofKey(true)
                         .build())
                 .build();
 
-        return new InMemoryRegisteredClientRepository(erpWebClient);
+        if (adapter.findByClientId(erpWebClient.getClientId()) == null) {
+            adapter.save(erpWebClient);
+        }
+
+        return adapter;
     }
 }
