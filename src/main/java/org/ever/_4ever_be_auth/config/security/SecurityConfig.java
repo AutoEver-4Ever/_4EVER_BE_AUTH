@@ -5,6 +5,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -18,9 +22,10 @@ public class SecurityConfig {
                                 "/auth/health",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/swaager-resources/**",
+                                "/swagger-resources/**",
                                 "/webjars/**",
-                                "/v3/api-docs/**"
+                                "/v3/api-docs/**",
+                                "/.well-known/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
@@ -29,5 +34,16 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**", "/auth/health"));
 
         return http.build();
+    }
+
+    // SecurityConfig 등에 테스트용으로 UserDetailsService를 등록하여 임시 계정을 만듦.
+    @Bean
+    public UserDetailsService userDetailsService() {
+        UserDetails user = User.withDefaultPasswordEncoder()
+                .username("test")
+                .password("test1234")
+                .roles("USER")
+                .build();
+        return new InMemoryUserDetailsManager(user);
     }
 }

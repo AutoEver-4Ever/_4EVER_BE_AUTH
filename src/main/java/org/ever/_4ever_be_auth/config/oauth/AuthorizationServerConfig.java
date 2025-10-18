@@ -50,8 +50,7 @@ public class AuthorizationServerConfig {
                                 "/.well-known/jwks.json"
                         ).permitAll().anyRequest().authenticated())
                 .csrf(csrf -> csrf.ignoringRequestMatchers(endpointsMatcher))
-                .with(authorizationServerConfigurer
-                        .oidc(Customizer.withDefaults()), Customizer.withDefaults());
+                .with(authorizationServerConfigurer.oidc(Customizer.withDefaults()), Customizer.withDefaults()).formLogin(Customizer.withDefaults());
 
         http.oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
 
@@ -91,7 +90,7 @@ public class AuthorizationServerConfig {
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 .redirectUri("http://localhost:3000/oauth2/callback")
                 .scope(OidcScopes.OPENID)
-                .scope("erp.scm.read")
+                .scope("erp.scm.read")      // 접근 권한 설정
                 .tokenSettings(tokenSettings)
                 .clientSettings(ClientSettings.builder().requireProofKey(true).build())
                 .build();
