@@ -38,9 +38,16 @@ public class AuthorizationServerConfig {
     @Order(1) // Bean 객체의 적용 순서를 지정하는 어노테이션
     public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http,
                                                                       RegisteredClientRepository registeredClientRepository) throws Exception {
-        // 인가 서버 표준 엔드포인트를 HttpSecurity에 붙일 때 필요한 세부 설정을 캡슐화 하기위한 객체
+        // RegisteredClientRepository 주입: JDBC 기반 등록 클라이언트가 애플리케이션 기동 시점에 초기화되도록 보장
+
+        // Configurer 인스턴스를 생성해 인가/토큰/JWKS 등 표준 엔드포인트를 등록하고 OIDC(JWKS 포함)를 활성화
         OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = new OAuth2AuthorizationServerConfigurer();
-        // 생성한 configurer가 자동으로 노출할 엔드포인트의 경로 패턴을 RequestMatcher 형태로 받음
+        http.with(authorizationServerConfigurer, configurer -> {
+            configurer.registeredClientRepository(registeredClientRepository);
+            configurer.oidc(Customizer.withDefaults());
+        });
+
+        // Configurer가 노출한 표준 엔드포인트와 일반 보안 체인을 분리하기 위한 매처
         RequestMatcher endpointsMatcher = authorizationServerConfigurer.getEndpointsMatcher();
 
         http.securityMatcher(endpointsMatcher)
@@ -48,10 +55,12 @@ public class AuthorizationServerConfig {
                         .requestMatchers(
                                 "/.well-known/openid-configuration",
                                 "/.well-known/jwks.json"
-                        ).permitAll().anyRequest().authenticated())
+                        ).permitAll()
+                        .anyRequest().authenticated())
                 .csrf(csrf -> csrf.ignoringRequestMatchers(endpointsMatcher))
-                .with(authorizationServerConfigurer.oidc(Customizer.withDefaults()), Customizer.withDefaults()).formLogin(Customizer.withDefaults());
+                .formLogin(Customizer.withDefaults());
 
+        // 동일 애플리케이션에서 리소스 서버로 동작할 때 JWT 검증을 활성화
         http.oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
 
         return http.build();
@@ -66,6 +75,7 @@ public class AuthorizationServerConfig {
                 .issuer(issuer)
                 .authorizationEndpoint("/oauth2/authorize")
                 .tokenEndpoint("/oauth2/token")
+                .jwkSetEndpoint("/.well-known/jwks.json")
                 .build();
     }
 
