@@ -63,9 +63,9 @@ dependencies {
     // Jackson for Redis serialization
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
-    // OAuth 구현(Spring Security 6)
-    // OAuth2 Authorization Server (명시적 버전 필요)
-    implementation 'org.springframework.security:spring-security-oauth2-authorization-server:1.4.0'
+    // OAuth 관련 의존성
+    // OAuth2 Authorization Server
+    implementation "org.springframework.boot:spring-boot-starter-oauth2-authorization-server"
 
     // Resource Server (Boot가 버전 관리)
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
