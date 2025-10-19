@@ -31,10 +31,14 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .formLogin(Customizer.withDefaults())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**", "/auth/health"));
 
+        http.formLogin(form -> form
+                .loginPage("/login")
+                .loginProcessingUrl("/login")
+                .permitAll()
+        );
         return http.build();
     }
 
