@@ -17,8 +17,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
+    private static final String EVERP_DOMAIN = "@everp.com"; // domain 주소
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserNotificationService notificationService;
 
     @Override
     public User createUser(CreateUserRequestDto requestDto, UserRole requesterUserRole) {
@@ -27,8 +29,9 @@ public class UserServiceImpl implements UserService {
                     ErrorCode.FORBIDDEN_OPERATION,
                     String.format("사용자 생성 권한이 없습니다. (missing: %s)", Permission.CREATE_USER.name()));
         }
+        String contactEmail = requestDto.getContactEmail();
+        String loginEmail = contactEmail.substring(0, contactEmail.indexOf("@")) + EVERP_DOMAIN;
 
-        String loginEmail = requestDto.getContactEmail().toLowerCase();
         if (userRepository.existsByLoginEmail(loginEmail)) {
             throw new BusinessException(
                     ErrorCode.DUPLICATE_RESOURCE,
@@ -36,15 +39,19 @@ public class UserServiceImpl implements UserService {
             );
         }
 
+        // 초기 비밀번호 세팅
         String rawInitialPassword = generateInitialPassword();
         String encodedPassword = passwordEncoder.encode(rawInitialPassword);
 
-        User newUser = User.create(
-                loginEmail,
-                encodedPassword,
-                requestDto.getUserRole()
+        // 사용자 저장
+        User savedUser = userRepository.save(
+                User.create(loginEmail, encodedPassword, requestDto.getUserRole())
         );
-        return userRepository.save(newUser);
+
+        // 이메일 발송
+        notificationService.sendUserNotification(contactEmail, loginEmail, rawInitialPassword);
+
+        return savedUser;
     }
 
     private String generateInitialPassword() {

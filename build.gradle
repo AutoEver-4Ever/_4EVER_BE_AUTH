@@ -75,6 +75,9 @@ dependencies {
 
     // (테스트) Spring Security 테스트 유틸
     testImplementation 'org.springframework.security:spring-security-test'
+
+    // 이메일 발송 서비스
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
 }
 
 def querydslDir = "$buildDir/generated/querydsl"
