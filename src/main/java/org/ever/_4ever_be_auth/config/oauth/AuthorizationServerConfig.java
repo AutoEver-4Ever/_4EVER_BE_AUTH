@@ -99,6 +99,7 @@ public class AuthorizationServerConfig {
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 .redirectUri("http://localhost:3000/oauth2/callback")
+                .redirectUri("https://4-ever-fe.vercel.app/oauth2/callback")
                 .scope(OidcScopes.OPENID)
                 .scope("erp.scm.read")      // 접근 권한 설정
                 .tokenSettings(tokenSettings)
