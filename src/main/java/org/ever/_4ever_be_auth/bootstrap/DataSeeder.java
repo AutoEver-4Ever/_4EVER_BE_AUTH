@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -92,7 +93,7 @@ public class DataSeeder implements CommandLineRunner {
 
         jdbcTemplate.query(
             "SELECT permission_id, code FROM permissions WHERE module_id = ?",
-            rs -> ids.put(rs.getString("code"), UUID.fromString(rs.getString("permission_id"))),
+                (ResultSetExtractor<UUID>) rs -> ids.put(rs.getString("code"), UUID.fromString(rs.getString("permission_id"))),
             hrmModuleId
         );
         log.info("[Seed] HRM permissions ensured: {}", ids.keySet());
