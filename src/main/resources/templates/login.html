@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>EvERP 로그인</title>
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <style>
+        :root {
+            color-scheme: light dark;
+            --bg-color: #f9fafb;
+            --panel-bg: #ffffff;
+            --accent: #2563eb;
+            --accent-dark: #1d4ed8;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-color);
+            font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: var(--text-primary);
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 420px;
+            padding: 32px;
+            border-radius: 20px;
+            background: var(--panel-bg);
+            box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12);
+        }
+
+        .brand {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 28px;
+            letter-spacing: -0.5px;
+        }
+
+        .brand p {
+            margin: 8px 0 0;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 13px 14px;
+            border-radius: 12px;
+            border: 1px solid #d1d5db;
+            font-size: 15px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        .field {
+            margin-bottom: 18px;
+        }
+
+        .actions {
+            margin-top: 26px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            color: #ffffff;
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 24px rgba(37, 99, 235, 0.25);
+        }
+
+        .meta {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #0f172a;
+                --panel-bg: #111c34;
+                --text-primary: #e2e8f0;
+                --text-secondary: #94a3b8;
+            }
+
+            input[type="text"],
+            input[type="password"] {
+                border: 1px solid #1e293b;
+                background: #0f172a;
+                color: var(--text-primary);
+            }
+
+            button {
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+<main class="login-container">
+    <div class="brand">
+        <h1>EvERP</h1>
+        <p>안전한 인증을 위해 EvERP 계정으로 로그인하세요.</p>
+    </div>
+    <form method="post" th:action="@{/login}">
+        <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
+        <div class="field">
+            <label for="username">업무 이메일</label>
+            <input autocomplete="username" id="username" name="username" placeholder="user@everp.com" required
+                   type="text">
+        </div>
+        <div class="field">
+            <label for="password">비밀번호</label>
+            <input autocomplete="current-password" id="password" name="password" placeholder="비밀번호를 입력하세요"
+                   required type="password">
+        </div>
+        <div class="actions">
+            <button type="submit">EvERP 계정으로 로그인</button>
+        </div>
+    </form>
+    <p class="meta">
+        비밀번호를 잊으셨나요? 전사 시스템 관리자에게 초기화 요청을 해주세요.<br>
+        무단 접근 시 법적 제재를 받을 수 있습니다.
+    </p>
+</main>
+</body>
+</html>
