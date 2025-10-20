@@ -67,3 +67,69 @@ CREATE TABLE IF NOT EXISTS oauth2_authorization_consent (
     PRIMARY KEY (registered_client_id, principal_name)
 );
 
+-- =====================================================================
+-- RBAC + USER DOMAIN TABLES (UUID-based, PostgreSQL)
+-- =====================================================================
+
+-- Users
+CREATE TABLE IF NOT EXISTS users (
+    user_id uuid PRIMARY KEY,
+    login_email varchar(255) NOT NULL UNIQUE,
+    contact_email varchar(255),
+    username varchar(100) NOT NULL,
+    password varchar(100) NOT NULL,
+    phone_number varchar(30),
+    user_type varchar(20) NOT NULL,
+    status varchar(20) NOT NULL,
+    password_last_changed_at timestamp with time zone,
+    last_login_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT chk_users_user_type CHECK (user_type IN ('INTERNAL','CUSTOMER','SUPPLIER')),
+    CONSTRAINT chk_users_status CHECK (status IN ('ACTIVE','INACTIVE','SUSPENDED','DELETED'))
+);
+
+-- Modules (ERP domains)
+CREATE TABLE IF NOT EXISTS modules (
+    module_id uuid PRIMARY KEY,
+    code varchar(30) NOT NULL UNIQUE,
+    name varchar(100) NOT NULL,
+    description text
+);
+
+-- Permissions (scoped by module)
+CREATE TABLE IF NOT EXISTS permissions (
+    permission_id uuid PRIMARY KEY,
+    module_id uuid NOT NULL,
+    code varchar(100) NOT NULL,
+    action varchar(30) NOT NULL,
+    resource varchar(100),
+    CONSTRAINT fk_permissions_module FOREIGN KEY (module_id) REFERENCES modules(module_id) ON DELETE RESTRICT,
+    CONSTRAINT uq_permissions_module_code UNIQUE (module_id, code)
+);
+
+-- Roles
+CREATE TABLE IF NOT EXISTS roles (
+    role_id uuid PRIMARY KEY,
+    code varchar(100) NOT NULL UNIQUE,
+    name varchar(100) NOT NULL,
+    description text
+);
+
+-- Role-Permissions (N:N)
+CREATE TABLE IF NOT EXISTS role_permissions (
+    role_id uuid NOT NULL,
+    permission_id uuid NOT NULL,
+    PRIMARY KEY (role_id, permission_id),
+    CONSTRAINT fk_role_permissions_role FOREIGN KEY (role_id) REFERENCES roles(role_id) ON DELETE CASCADE,
+    CONSTRAINT fk_role_permissions_perm FOREIGN KEY (permission_id) REFERENCES permissions(permission_id) ON DELETE CASCADE
+);
+
+-- User-Roles (N:N)
+CREATE TABLE IF NOT EXISTS user_roles (
+    user_id uuid NOT NULL,
+    role_id uuid NOT NULL,
+    PRIMARY KEY (user_id, role_id),
+    CONSTRAINT fk_user_roles_user FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    CONSTRAINT fk_user_roles_role FOREIGN KEY (role_id) REFERENCES roles(role_id) ON DELETE CASCADE
+);
