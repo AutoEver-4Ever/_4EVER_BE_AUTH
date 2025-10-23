@@ -27,7 +27,14 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/webjars/**",
                                 "/v3/api-docs/**",
-                                "/.well-known/**"
+                                "/.well-known/**",
+                                "/css/**",
+                                "/js/**",
+                                // 로그인 페이지 정적자산 허용
+                                "/login",
+                                "/images/**",
+                                "/favicon.ico",
+                                "/videos/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
