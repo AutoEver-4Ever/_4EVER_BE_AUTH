@@ -28,9 +28,9 @@ public class SecurityConfig {
                                 "/webjars/**",
                                 "/v3/api-docs/**",
                                 "/.well-known/**",
+                                // 로그인 페이지 및 정적자산 허용
                                 "/css/**",
                                 "/js/**",
-                                // 로그인 페이지 정적자산 허용
                                 "/login",
                                 "/images/**",
                                 "/favicon.ico",
