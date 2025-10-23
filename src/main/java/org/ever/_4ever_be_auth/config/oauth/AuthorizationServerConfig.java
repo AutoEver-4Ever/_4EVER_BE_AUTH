@@ -93,8 +93,8 @@ public class AuthorizationServerConfig {
                                                                  TokenSettings tokenSettings) {
         JdbcRegisteredClientRepository repository = new JdbcRegisteredClientRepository(jdbcOperations);
 
-        RegisteredClient erpWebClient = RegisteredClient.withId("erp-web-client")
-                .clientId("erp-web-client")
+        RegisteredClient erpWebClient = RegisteredClient.withId("everp")
+                .clientId("everp")
                 .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
