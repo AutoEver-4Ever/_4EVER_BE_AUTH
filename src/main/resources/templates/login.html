@@ -4,8 +4,15 @@
     <meta charset="UTF-8">
     <title>EvERP 로그인</title>
     <meta content="width=device-width, initial-scale=1" name="viewport">
-    <script src="/static/js/login.js" th:src="@{/js/login.js}"></script>
     <link rel="stylesheet" href="/static/css/login.css" th:href="@{/css/login.css}">
+    <script th:inline="javascript">
+        const VIDEO_PATHS = [
+            "/videos/hy-autoever-intro1.mp4",
+            "/videos/hy-autoever-intro2.mp4",
+            "/videos/hy-autoever-intro3.mp4"
+        ];
+    </script>
+    <script defer th:src="@{/js/login.js}"></script>
 </head>
 <body>
 <div class="auth-container">
@@ -17,7 +24,7 @@
                 <p>Log in to join the journey with Ever.</p>
             </div>
 
-            <form method="post" th:action="@{/auth/login}" id="loginForm">
+            <form id="loginForm" method="post" th:action="@{/login}">
                 <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
 
                 <div class="form-field">
@@ -26,7 +33,7 @@
                             type="email"
                             id="email"
                             name="email"
-                            placeholder="example@email.com"
+                            placeholder="example@everp.com"
                             autocomplete="username"
                             required
                     >
