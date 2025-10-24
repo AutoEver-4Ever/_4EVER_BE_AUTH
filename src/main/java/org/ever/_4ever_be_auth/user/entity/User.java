@@ -85,6 +85,15 @@ public class User extends TimeStamp {
                 .build();
     }
 
+    public UUID getUserID() {
+        return userId;
+    }
+
+    public void updatePassword(String encodedPassword, LocalDateTime changedAt) {
+        this.passwordHash = encodedPassword;
+        this.passwordLastChangedAt = changedAt;
+    }
+
     @PrePersist
     public void prePersist() {
         if (userId == null) {
@@ -93,7 +102,4 @@ public class User extends TimeStamp {
     }
 
 
-    public UUID getUserID() {
-        return userId;
-    }
 }
