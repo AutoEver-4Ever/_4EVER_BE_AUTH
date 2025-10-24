@@ -1,8 +1,12 @@
 package org.ever._4ever_be_auth.common.exception.handler;
 
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ever._4ever_be_auth.common.exception.BusinessException;
 import org.ever._4ever_be_auth.common.exception.ErrorCode;
+import org.ever._4ever_be_auth.common.exception.view.ErrorMessageResolver;
+import org.ever._4ever_be_auth.common.exception.view.ErrorViewModel;
 import org.ever._4ever_be_auth.common.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +19,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.util.HashMap;
@@ -22,17 +27,25 @@ import java.util.Map;
 
 @Slf4j
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
+
+    private final ErrorMessageResolver errorMessageResolver;
 
     /**
      * BusinessException 처리
      */
     @ExceptionHandler(BusinessException.class)
-    protected ResponseEntity<ApiResponse<Object>> handleBusinessException(BusinessException e) {
+    protected Object handleBusinessException(BusinessException e, HttpServletRequest request) {
         log.error("비즈니스 예외 발생: code={}, message={}, detail={}",
             e.getErrorCode().getCode(), e.getMessage(), e.getDetail(), e);
 
         ErrorCode errorCode = e.getErrorCode();
+
+        if (isHtmlRequest(request)) {
+            return buildErrorView(errorCode, e.getDetail());
+        }
+
         Map<String, Object> errorDetails = new HashMap<>();
         errorDetails.put("code", errorCode.getCode());
         if (e.getDetail() != null) {
@@ -190,8 +203,13 @@ public class GlobalExceptionHandler {
      * 404 Not Found
      */
     @ExceptionHandler(NoHandlerFoundException.class)
-    protected ResponseEntity<ApiResponse<Object>> handleNoHandlerFoundException(NoHandlerFoundException e) {
+    protected Object handleNoHandlerFoundException(NoHandlerFoundException e, HttpServletRequest request) {
         log.error("핸들러를 찾을 수 없음: {}", e.getMessage(), e);
+
+        if (isHtmlRequest(request)) {
+            String detail = String.format("%s %s", e.getHttpMethod(), e.getRequestURL());
+            return buildErrorView(ErrorCode.RESOURCE_NOT_FOUND, detail);
+        }
 
         Map<String, Object> errorDetails = new HashMap<>();
         errorDetails.put("code", 404);
@@ -211,8 +229,12 @@ public class GlobalExceptionHandler {
      * 모든 예외 처리 (Exception)
      */
     @ExceptionHandler(Exception.class)
-    protected ResponseEntity<ApiResponse<Object>> handleException(Exception e) {
+    protected Object handleException(Exception e, HttpServletRequest request) {
         log.error("예상치 못한 예외 발생: {}", e.getMessage(), e);
+
+        if (isHtmlRequest(request)) {
+            return buildErrorView(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
 
         Map<String, Object> errorDetails = new HashMap<>();
         errorDetails.put("code", ErrorCode.INTERNAL_SERVER_ERROR.getCode());
@@ -225,5 +247,31 @@ public class GlobalExceptionHandler {
         );
 
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    private boolean isHtmlRequest(HttpServletRequest request) {
+        String accept = request.getHeader("Accept");
+        if (accept != null) {
+            if (accept.contains("text/html")) {
+                return true;
+            }
+            if (accept.contains("application/xhtml+xml")) {
+                return true;
+            }
+            if (accept.contains("application/json")) {
+                return false;
+            }
+        }
+        String requestedWith = request.getHeader("X-Requested-With");
+        return accept == null && (!"XMLHttpRequest".equals(requestedWith));
+    }
+
+    private ModelAndView buildErrorView(ErrorCode errorCode, String detail) {
+        ErrorViewModel viewModel = errorMessageResolver.resolve(errorCode, detail);
+        ModelAndView mav = new ModelAndView("error/general");
+        mav.addObject("error", viewModel);
+        mav.addObject("status", errorCode.getHttpStatus().value());
+        mav.setStatus(errorCode.getHttpStatus());
+        return mav;
     }
 }

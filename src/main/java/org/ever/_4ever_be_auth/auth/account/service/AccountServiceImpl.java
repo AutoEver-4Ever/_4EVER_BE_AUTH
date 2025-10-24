@@ -58,6 +58,10 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public void resetPassword(String rawToken, String newPassword) {
+        if (newPassword == null || newPassword.length() < 8) {
+            throw new BusinessException(ErrorCode.INVALID_PASSWORD, "비밀번호는 8자 이상이어야 합니다.");
+        }
+
         LocalDateTime now = LocalDateTime.now();
         PasswordResetToken token = tokenRepository
                 .findByTokenAndUsedFalseAndExpiresAtAfter(rawToken, now)

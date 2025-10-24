@@ -86,12 +86,6 @@ dependencies {
     // BCrypt 등 암호 유틸
     implementation 'org.springframework.security:spring-security-crypto'
 
-    // DB 마이그레이션(Flyway)
-    implementation 'org.flywaydb:flyway-core'
-
-    // postgreSQL 전용 flyway
-    implementation 'org.flywaydb:flyway-database-postgresql'
-
     runtimeOnly 'org.postgresql:postgresql:42.7.7'
 }
 
