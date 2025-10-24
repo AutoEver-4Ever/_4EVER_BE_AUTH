@@ -12,7 +12,6 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
-import org.springframework.security.oauth2.core.oidc.OidcScopes;
 import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
@@ -103,10 +102,8 @@ public class AuthorizationServerConfig {
                 .clientId("everp")
                 .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 .redirectUri("http://localhost:3000/oauth2/callback")
-                .redirectUri("https://4-ever-fe.vercel.app/oauth2/callback")
-                .scope(OidcScopes.OPENID)
+                .redirectUri("https://everp.co.kr/callback")
                 .scope("erp.user.profile")      // 접근 권한 설정
                 .tokenSettings(tokenSettings)
                 .clientSettings(ClientSettings.builder().requireProofKey(true).build())

@@ -2,6 +2,7 @@ package org.ever._4ever_be_auth.config.security;
 
 import org.ever._4ever_be_auth.auth.client.filter.ClientValidationFilter;
 import org.ever._4ever_be_auth.auth.handler.LoginFailureHandler;
+import org.ever._4ever_be_auth.auth.handler.LoginSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -23,7 +24,8 @@ public class SecurityConfig {
     public SecurityFilterChain defaultSecurityFilterChain(
             HttpSecurity http,
             ClientValidationFilter clientValidationFilter,
-            LoginFailureHandler loginFailureHandler
+            LoginFailureHandler loginFailureHandler,
+            LoginSuccessHandler loginSuccessHandler
     ) throws Exception {
         // addFilterBefore = clientValidationFilter가 먼저 실행
         // 다음으로 UsernamePasswordAuthentication이 실행됨.
@@ -59,6 +61,7 @@ public class SecurityConfig {
                 .usernameParameter("email")
                 .passwordParameter("password")
                 .failureHandler(loginFailureHandler)
+                .successHandler(loginSuccessHandler)
                 .permitAll()
         );
         return http.build();
@@ -68,8 +71,8 @@ public class SecurityConfig {
     @Bean
     public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
         UserDetails user = User
-                .withUsername("admin@ever.com")
-                .password(passwordEncoder.encode("password"))
+                .withUsername("admin@everp.com")
+                .password(passwordEncoder.encode("password@admin"))
                 .roles("ADMIN")
                 .build();
         return new InMemoryUserDetailsManager(user);

@@ -27,6 +27,16 @@
             <form id="loginForm" method="post" th:action="@{/login}">
                 <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
 
+                <th:block th:if="${oauth2Params != null}">
+                    <input name="client_id" th:value="${oauth2Params.clientId()}" type="hidden"/>
+                    <input name="redirect_uri" th:value="${oauth2Params.redirectUri()}" type="hidden"/>
+                    <input name="response_type" th:value="${oauth2Params.responseType()}" type="hidden"/>
+                    <input name="scope" th:value="${oauth2Params.scope()}" type="hidden"/>
+                    <input name="state" th:value="${oauth2Params.state()}" type="hidden"/>
+                    <input name="code_challenge" th:value="${oauth2Params.codeChallenge()}" type="hidden"/>
+                    <input name="code_challenge_method" th:value="${oauth2Params.codeChallengeMethod()}" type="hidden"/>
+                </th:block>
+
                 <div class="form-field">
                     <label for="email">이메일</label>
                     <input
