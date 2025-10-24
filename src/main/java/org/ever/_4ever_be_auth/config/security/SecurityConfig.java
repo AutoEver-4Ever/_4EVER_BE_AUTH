@@ -44,6 +44,8 @@ public class SecurityConfig {
         http.formLogin(form -> form
                 .loginPage("/login")
                 .loginProcessingUrl("/login")
+                .usernameParameter("email")
+                .passwordParameter("password")
                 .permitAll()
         );
         return http.build();
@@ -52,9 +54,10 @@ public class SecurityConfig {
     // SecurityConfig 등에 테스트용으로 UserDetailsService를 등록하여 임시 계정을 만듦.
     @Bean
     public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
-        UserDetails user = User.withUsername("test")
-                .password(passwordEncoder.encode("test1234"))
-                .roles("USER")
+        UserDetails user = User
+                .withUsername("admin@ever.com")
+                .password(passwordEncoder.encode("password"))
+                .roles("ADMIN")
                 .build();
         return new InMemoryUserDetailsManager(user);
     }
