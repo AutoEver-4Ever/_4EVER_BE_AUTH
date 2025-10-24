@@ -14,6 +14,7 @@ import org.hibernate.annotations.UuidGenerator;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -26,7 +27,10 @@ public class User extends TimeStamp {
     @GeneratedValue
     @UuidGenerator
     @Column(name = "user_id", nullable = false, updatable = false, unique = true, length = 36)
-    private String userId;
+    private UUID userId;
+
+    @Column(name = "email", nullable = false)
+    private String email;           // 사용자의 일반 이메일
 
     @Column(name = "login_email", nullable = false, unique = true, length = 320)
     private String loginEmail;      // 사용자의 로그인 이메일(*@everp.com)
@@ -50,7 +54,7 @@ public class User extends TimeStamp {
     private LocalDateTime passwordLastChangedAt;  // null 이면 최초 비밀번호 변경 필요
 
     @Builder(access = AccessLevel.PRIVATE)
-    public User(String userId,
+    public User(UUID userId,
                 String loginEmail,
                 String passwordHash,
                 UserRole userRole,
@@ -79,5 +83,17 @@ public class User extends TimeStamp {
                 .userStatus(UserStatus.ACTIVE)
                 .passwordLastChangedAt(null) // 최초 로그인 시 변경을 요구하기 위해서 null으로 처리함.
                 .build();
+    }
+
+    @PrePersist
+    public void prePersist() {
+        if (userId == null) {
+            userId = UUID.randomUUID();
+        }
+    }
+
+
+    public UUID getUserID() {
+        return userId;
     }
 }
