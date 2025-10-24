@@ -115,3 +115,15 @@ loginForm.addEventListener('submit', function(e) {
     // 중복 제출 방지
     submitBtn.disabled = true;
 });
+
+const retryButton = document.getElementById('retryButton');
+if (retryButton) {
+    retryButton.addEventListener('click', () => {
+        if (passwordInput) {
+            passwordInput.value = '';
+        }
+        if (emailInput) {
+            emailInput.focus();
+        }
+    });
+}

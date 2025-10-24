@@ -9,6 +9,9 @@
     --text-primary: #101828;
     --text-secondary: #99a1af;
     --error-color: #ef4444;
+    --error-bg: #fef2f2;
+    --success-color: #16a34a;
+    --success-bg: #ecfdf3;
     --border-color: #d1d5dc;
     --input-bg: #ffffff;
 }
@@ -142,6 +145,67 @@ input.error:focus {
     min-height: 18px; /* 항상 자리 확보 */
     font-size: 13px;
     color: var(--error-color);
+}
+
+.notice {
+    margin-bottom: 20px;
+    padding: 16px 18px;
+    border-radius: 12px;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    background: var(--error-bg);
+}
+
+.notice strong {
+    display: block;
+    font-size: 16px;
+    margin-bottom: 6px;
+}
+
+.notice p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.notice--success {
+    border-color: rgba(22, 163, 74, 0.25);
+    background: var(--success-bg);
+}
+
+.notice--success strong {
+    color: var(--success-color);
+}
+
+.notice-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.link-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    background: rgba(37, 99, 235, 0.1);
+    color: var(--accent);
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s ease;
+}
+
+.link-button:hover {
+    background: rgba(37, 99, 235, 0.18);
+}
+
+.link-button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
 }
 
 .submit-button {
