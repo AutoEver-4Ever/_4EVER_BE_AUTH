@@ -1,4 +1,4 @@
-package org.ever._4ever_be_auth.auth.handler;
+package org.ever._4ever_be_auth.auth.account.handler;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

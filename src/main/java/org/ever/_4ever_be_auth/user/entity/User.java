@@ -85,10 +85,6 @@ public class User extends TimeStamp {
                 .build();
     }
 
-    public UUID getUserID() {
-        return userId;
-    }
-
     public void updatePassword(String encodedPassword, LocalDateTime changedAt) {
         this.passwordHash = encodedPassword;
         this.passwordLastChangedAt = changedAt;
@@ -100,6 +96,4 @@ public class User extends TimeStamp {
             userId = UUID.randomUUID();
         }
     }
-
-
 }
