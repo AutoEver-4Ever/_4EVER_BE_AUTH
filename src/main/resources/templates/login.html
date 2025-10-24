@@ -54,6 +54,11 @@
                 </div>
 
                 <button type="submit" class="submit-button" id="submitBtn">로그인</button>
+
+                <div class="form-error" th:if="${param.error}">
+                    <p class="error">이메일 또는 비밀번호가 일치하지 않습니다.</p>
+                </div>
+
             </form>
         </div>
     </div>

@@ -1,6 +1,7 @@
 package org.ever._4ever_be_auth.config.security;
 
 import org.ever._4ever_be_auth.auth.client.filter.ClientValidationFilter;
+import org.ever._4ever_be_auth.auth.handler.LoginFailureHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -21,8 +22,12 @@ public class SecurityConfig {
     @Order(2)
     public SecurityFilterChain defaultSecurityFilterChain(
             HttpSecurity http,
-            ClientValidationFilter clientValidationFilter
+            ClientValidationFilter clientValidationFilter,
+            LoginFailureHandler loginFailureHandler
     ) throws Exception {
+        // addFilterBefore = clientValidationFilter가 먼저 실행
+        // 다음으로 UsernamePasswordAuthentication이 실행됨.
+        // UserPasswordAuthentication: 사용자 이름과 비밀번호로 POST login 요청을 감시하며, authenticationManager에게 인증을 위임하여 수행함.
         http.addFilterBefore(clientValidationFilter, UsernamePasswordAuthenticationFilter.class);
 
         http
@@ -53,6 +58,7 @@ public class SecurityConfig {
                 .loginProcessingUrl("/login")
                 .usernameParameter("email")
                 .passwordParameter("password")
+                .failureHandler(loginFailureHandler)
                 .permitAll()
         );
         return http.build();
