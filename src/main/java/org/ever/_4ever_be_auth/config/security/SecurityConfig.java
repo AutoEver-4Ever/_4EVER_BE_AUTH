@@ -1,8 +1,8 @@
 package org.ever._4ever_be_auth.config.security;
 
+import org.ever._4ever_be_auth.auth.account.handler.LoginFailureHandler;
+import org.ever._4ever_be_auth.auth.account.handler.LoginSuccessHandler;
 import org.ever._4ever_be_auth.auth.client.filter.ClientValidationFilter;
-import org.ever._4ever_be_auth.auth.handler.LoginFailureHandler;
-import org.ever._4ever_be_auth.auth.handler.LoginSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -48,7 +48,10 @@ public class SecurityConfig {
                                 "/login",
                                 "/images/**",
                                 "/favicon.ico",
-                                "/videos/**"
+                                "/videos/**",
+                                // 비밀번호 찾기 url
+                                "/password/reset",
+                                "/password/reset/confirm"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
