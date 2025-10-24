@@ -1,5 +1,7 @@
 package org.ever._4ever_be_auth.config.oauth;
 
+import org.ever._4ever_be_auth.auth.client.filter.ClientValidationFilter;
+import org.ever._4ever_be_auth.auth.client.service.ClientValidationService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -101,7 +103,7 @@ public class AuthorizationServerConfig {
                 .redirectUri("http://localhost:3000/oauth2/callback")
                 .redirectUri("https://4-ever-fe.vercel.app/oauth2/callback")
                 .scope(OidcScopes.OPENID)
-                .scope("erp.scm.read")      // 접근 권한 설정
+                .scope("erp.user.profile")      // 접근 권한 설정
                 .tokenSettings(tokenSettings)
                 .clientSettings(ClientSettings.builder().requireProofKey(true).build())
                 .build();
@@ -112,4 +114,10 @@ public class AuthorizationServerConfig {
 
         return repository;
     }
+
+    @Bean
+    public ClientValidationFilter clientValidationFilter(ClientValidationService clientValidationService) {
+        return new ClientValidationFilter(clientValidationService);
+    }
+
 }
