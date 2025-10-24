@@ -49,7 +49,6 @@ public class AuthorizationServerConfig {
         OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = new OAuth2AuthorizationServerConfigurer();
         http.with(authorizationServerConfigurer, configurer -> {
             configurer.registeredClientRepository(registeredClientRepository);
-            configurer.oidc(Customizer.withDefaults());
         });
 
         // Configurer가 노출한 표준 엔드포인트와 일반 보안 체인을 분리하기 위한 매처
