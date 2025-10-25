@@ -2,6 +2,8 @@ package org.ever._4ever_be_auth.auth.account.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.ever._4ever_be_auth.auth.account.service.AccountService;
+import org.ever._4ever_be_auth.common.exception.BusinessException;
+import org.ever._4ever_be_auth.common.exception.ErrorCode;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,9 +35,17 @@ public class AccountController {
             @RequestParam("email") String email,
             RedirectAttributes redirectAttributes
     ) {
-        accountService.sendResetLink(email.trim());
-        redirectAttributes.addFlashAttribute("message", "입력하신 이메일로 재설정 링크를 전송했습니다.");
-        return "redirect:/password/reset?sent";
+        try {
+            accountService.sendResetLink(email.trim());
+            redirectAttributes.addFlashAttribute("message", "입력하신 이메일로 재설정 링크를 전송했습니다.");
+            return "redirect:/password/reset?sent";
+        } catch (BusinessException e) {
+            if (e.getErrorCode() == ErrorCode.USER_NOT_FOUND) {
+                redirectAttributes.addFlashAttribute("error", "등록되지 않은 이메일입니다.");
+                return "redirect:/password/reset?error";
+            }
+            throw e;
+        }
     }
 
     // 비밀번호 confirm page
