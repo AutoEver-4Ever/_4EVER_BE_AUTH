@@ -82,6 +82,11 @@
                     <p>다시 로그인하려면 아래에 계정 정보를 입력해 주세요.</p>
                 </div>
 
+                <div class="notice notice--success" th:if="${param.passwordChanged}">
+                    <strong>비밀번호가 변경되었습니다.</strong>
+                    <p>새 비밀번호로 다시 로그인해 주세요.</p>
+                </div>
+
                 <button type="submit" class="submit-button" id="submitBtn">로그인</button>
 
                 <div class="auth-switch">

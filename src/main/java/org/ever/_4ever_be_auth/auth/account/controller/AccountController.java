@@ -1,9 +1,14 @@
 package org.ever._4ever_be_auth.auth.account.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.ever._4ever_be_auth.auth.account.service.AccountService;
 import org.ever._4ever_be_auth.common.exception.BusinessException;
 import org.ever._4ever_be_auth.common.exception.ErrorCode;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -68,5 +73,44 @@ public class AccountController {
         accountService.resetPassword(token, newPassword);
         redirectAttributes.addFlashAttribute("message", "비밀번호가 변경되었습니다. 새 비밀번호로 로그인해 주세요");
         return "redirect:/login?success";
+    }
+
+    @GetMapping("/password/change")
+    public String passwordChangePage(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/login";
+        }
+        return "password-change";
+    }
+
+    @PostMapping("/password/change")
+    public String changePassword(@RequestParam("newPassword") String newPassword,
+                                 @RequestParam("confirmPassword") String confirmPassword,
+                                 HttpServletRequest request,
+                                 HttpServletResponse response,
+                                 RedirectAttributes redirectAttributes) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/login";
+        }
+
+        if (!newPassword.equals(confirmPassword)) {
+            redirectAttributes.addFlashAttribute("error", "비밀번호가 일치하지 않습니다.");
+            return "redirect:/password/change?error";
+        }
+
+        try {
+            accountService.changePassword(authentication.getName(), newPassword);
+        } catch (BusinessException e) {
+            if (e.getErrorCode() == ErrorCode.INVALID_PASSWORD) {
+                redirectAttributes.addFlashAttribute("error", e.getMessage());
+                return "redirect:/password/change?error";
+            }
+            throw e;
+        }
+
+        new SecurityContextLogoutHandler().logout(request, response, authentication);
+        redirectAttributes.addFlashAttribute("message", "비밀번호가 변경되었습니다. 새 비밀번호로 다시 로그인해 주세요.");
+        return "redirect:/login?passwordChanged";
     }
 }

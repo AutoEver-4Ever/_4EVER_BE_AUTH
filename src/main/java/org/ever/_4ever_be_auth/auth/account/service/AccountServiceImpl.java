@@ -58,9 +58,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public void resetPassword(String rawToken, String newPassword) {
-        if (newPassword == null || newPassword.length() < 8) {
-            throw new BusinessException(ErrorCode.INVALID_PASSWORD, "비밀번호는 8자 이상이어야 합니다.");
-        }
+        validatePasswordPolicy(newPassword);
 
         LocalDateTime now = LocalDateTime.now();
         PasswordResetToken token = tokenRepository
@@ -78,6 +76,23 @@ public class AccountServiceImpl implements AccountService {
         token.markAsUsed();
 
         log.info("[INFO] 비밀번호 재설정 완료 -> {}", user.getLoginEmail());
+    }
+
+    @Override
+    public void changePassword(String loginEmail, String newPassword) {
+        validatePasswordPolicy(newPassword);
+
+        User user = userRepository.findByLoginEmail(loginEmail)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        user.updatePassword(passwordEncoder.encode(newPassword), LocalDateTime.now());
+        log.info("[INFO] 사용자가 비밀번호를 변경했습니다. -> {}", user.getLoginEmail());
+    }
+
+    private void validatePasswordPolicy(String newPassword) {
+        if (newPassword == null || newPassword.length() < 8) {
+            throw new BusinessException(ErrorCode.INVALID_PASSWORD, "비밀번호는 8자 이상이어야 합니다.");
+        }
     }
 
 }
