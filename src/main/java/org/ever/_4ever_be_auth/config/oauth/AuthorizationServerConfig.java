@@ -21,8 +21,13 @@ import org.springframework.security.oauth2.server.authorization.settings.TokenSe
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 // 하나 이상의 Bean 객체가 있는 경우의 각 Bean들을 인식하기 위해 등록하는 어노테이션
 @Configuration
@@ -42,7 +47,8 @@ public class AuthorizationServerConfig {
     public SecurityFilterChain authorizationServerSecurityFilterChain(
             HttpSecurity http,
             RegisteredClientRepository registeredClientRepository,
-            ClientValidationFilter clientValidationFilter
+            ClientValidationFilter clientValidationFilter,
+            CorsConfigurationSource authorizationCorsConfigurationSource
     ) throws Exception {
 
         // RegisteredClientRepository 주입: JDBC 기반 등록 클라이언트가 애플리케이션 기동 시점에 초기화되도록 보장
@@ -62,6 +68,7 @@ public class AuthorizationServerConfig {
                         ).permitAll()
                         .anyRequest().authenticated())
                 .csrf(csrf -> csrf.ignoringRequestMatchers(endpointsMatcher))
+                .cors(cors -> cors.configurationSource(authorizationCorsConfigurationSource))
                 .formLogin(Customizer.withDefaults());
         http.addFilterBefore(clientValidationFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -117,6 +124,25 @@ public class AuthorizationServerConfig {
     @Bean
     public ClientValidationFilter clientValidationFilter(ClientValidationService clientValidationService) {
         return new ClientValidationFilter(clientValidationService);
+    }
+
+    @Bean
+    public CorsConfigurationSource authorizationCorsConfigurationSource(
+            @Value("${app.security.cors.allowed-origins:https://everp.co.kr}") String allowedOrigins) {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowCredentials(true);
+        configuration.setAllowedOrigins(Stream.of(allowedOrigins.split(","))
+                .map(String::trim)
+                .filter(origin -> !origin.isEmpty())
+                .collect(Collectors.toList()));
+        configuration.setAllowedMethods(Stream.of("GET", "POST", "OPTIONS").collect(Collectors.toList()));
+        configuration.setAllowedHeaders(Stream.of("Authorization", "Content-Type", "Accept", "Origin").collect(Collectors.toList()));
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/oauth2/**", configuration);
+        source.registerCorsConfiguration("/login", configuration);
+        return source;
     }
 
 }
