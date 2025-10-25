@@ -1,17 +1,17 @@
 package org.ever._4ever_be_auth.config.oauth;
 
+import org.ever._4ever_be_auth.auth.client.filter.ClientValidationFilter;
+import org.ever._4ever_be_auth.auth.client.service.ClientValidationService;
+import org.ever._4ever_be_auth.auth.oauth.service.JpaRegisteredClientRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
-import org.springframework.security.oauth2.core.oidc.OidcScopes;
-import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
@@ -19,7 +19,10 @@ import org.springframework.security.oauth2.server.authorization.settings.Authori
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+
+import java.util.UUID;
 
 // 하나 이상의 Bean 객체가 있는 경우의 각 Bean들을 인식하기 위해 등록하는 어노테이션
 @Configuration
@@ -36,20 +39,21 @@ public class AuthorizationServerConfig {
     // 메서드가 반환하는 객체를 스프링 컨테이너에 빈으로 등록하는 어노테이션
     @Bean
     @Order(1) // Bean 객체의 적용 순서를 지정하는 어노테이션
-    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http,
-                                                                      RegisteredClientRepository registeredClientRepository) throws Exception {
-        // RegisteredClientRepository 주입: JDBC 기반 등록 클라이언트가 애플리케이션 기동 시점에 초기화되도록 보장
+    public SecurityFilterChain authorizationServerSecurityFilterChain(
+            HttpSecurity http,
+            RegisteredClientRepository registeredClientRepository,
+            ClientValidationFilter clientValidationFilter
+    ) throws Exception {
 
+        // RegisteredClientRepository 주입: JDBC 기반 등록 클라이언트가 애플리케이션 기동 시점에 초기화되도록 보장
         // Configurer 인스턴스를 생성해 인가/토큰/JWKS 등 표준 엔드포인트를 등록하고 OIDC(JWKS 포함)를 활성화
         OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = new OAuth2AuthorizationServerConfigurer();
         http.with(authorizationServerConfigurer, configurer -> {
             configurer.registeredClientRepository(registeredClientRepository);
-            configurer.oidc(Customizer.withDefaults());
         });
 
         // Configurer가 노출한 표준 엔드포인트와 일반 보안 체인을 분리하기 위한 매처
         RequestMatcher endpointsMatcher = authorizationServerConfigurer.getEndpointsMatcher();
-
         http.securityMatcher(endpointsMatcher)
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
@@ -59,6 +63,7 @@ public class AuthorizationServerConfig {
                         .anyRequest().authenticated())
                 .csrf(csrf -> csrf.ignoringRequestMatchers(endpointsMatcher))
                 .formLogin(Customizer.withDefaults());
+        http.addFilterBefore(clientValidationFilter, UsernamePasswordAuthenticationFilter.class);
 
         // 동일 애플리케이션에서 리소스 서버로 동작할 때 JWT 검증을 활성화
         http.oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
@@ -89,19 +94,15 @@ public class AuthorizationServerConfig {
     }
 
     @Bean
-    public RegisteredClientRepository registeredClientRepository(JdbcOperations jdbcOperations,
+    public RegisteredClientRepository registeredClientRepository(JpaRegisteredClientRepository repository,
                                                                  TokenSettings tokenSettings) {
-        JdbcRegisteredClientRepository repository = new JdbcRegisteredClientRepository(jdbcOperations);
-
-        RegisteredClient erpWebClient = RegisteredClient.withId("erp-web-client")
-                .clientId("erp-web-client")
+        RegisteredClient erpWebClient = RegisteredClient.withId(UUID.randomUUID().toString())
+                .clientId("everp")
                 .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 .redirectUri("http://localhost:3000/oauth2/callback")
-                .redirectUri("https://4-ever-fe.vercel.app/oauth2/callback")
-                .scope(OidcScopes.OPENID)
-                .scope("erp.scm.read")      // 접근 권한 설정
+                .redirectUri("https://everp.co.kr/callback")
+                .scope("erp.user.profile")      // 접근 권한 설정
                 .tokenSettings(tokenSettings)
                 .clientSettings(ClientSettings.builder().requireProofKey(true).build())
                 .build();
@@ -112,4 +113,10 @@ public class AuthorizationServerConfig {
 
         return repository;
     }
+
+    @Bean
+    public ClientValidationFilter clientValidationFilter(ClientValidationService clientValidationService) {
+        return new ClientValidationFilter(clientValidationService);
+    }
+
 }
